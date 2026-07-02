@@ -7,6 +7,7 @@ function App() {
   const [services, setServices] = useState([])
   const [appointments, setAppointments] = useState([])
   const [attendance, setAttendance] = useState([])
+  const [sales, setSales] = useState([])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -17,6 +18,11 @@ function App() {
   const [startTime, setStartTime] = useState('')
 
   const [clockEmployeeId, setClockEmployeeId] = useState('')
+
+  const [saleEmployeeId, setSaleEmployeeId] = useState('')
+  const [itemName, setItemName] = useState('')
+  const [quantity, setQuantity] = useState(1)
+  const [price, setPrice] = useState('')
 
   async function loadAll() {
     const { data: c } = await supabase.from('customers').select('*').order('created_at', { ascending: false })
@@ -35,6 +41,11 @@ function App() {
       .select('*, employees(name)')
       .order('clock_in', { ascending: false })
     setAttendance(att || [])
+    const { data: sl } = await supabase
+      .from('sales_log')
+      .select('*, employees(name)')
+      .order('created_at', { ascending: false })
+    setSales(sl || [])
   }
 
   useEffect(() => {
@@ -68,10 +79,7 @@ function App() {
       start_time: startTime,
       status: 'Scheduled'
     }])
-    if (error) {
-      alert('Error: ' + error.message)
-      return
-    }
+    if (error) { alert('Error: ' + error.message); return }
     setCustomerId('')
     setEmployeeId('')
     setServiceId('')
@@ -85,10 +93,7 @@ function App() {
   }
 
   async function clockIn() {
-    if (!clockEmployeeId) {
-      alert('Pick an employee first')
-      return
-    }
+    if (!clockEmployeeId) { alert('Pick an employee first'); return }
     const { error } = await supabase.from('attendance').insert([{
       employee_id: clockEmployeeId,
       clock_in: new Date().toISOString()
@@ -98,10 +103,7 @@ function App() {
   }
 
   async function clockOut() {
-    if (!clockEmployeeId) {
-      alert('Pick an employee first')
-      return
-    }
+    if (!clockEmployeeId) { alert('Pick an employee first'); return }
     const { data: openShift } = await supabase
       .from('attendance')
       .select('*')
@@ -110,20 +112,46 @@ function App() {
       .order('clock_in', { ascending: false })
       .limit(1)
       .single()
-
-    if (!openShift) {
-      alert('This employee is not currently clocked in')
-      return
-    }
-
+    if (!openShift) { alert('This employee is not currently clocked in'); return }
     const { error } = await supabase
       .from('attendance')
       .update({ clock_out: new Date().toISOString() })
       .eq('id', openShift.id)
-
     if (error) { alert('Error: ' + error.message); return }
     loadAll()
   }
+
+  async function addSale(e) {
+    e.preventDefault()
+    if (!saleEmployeeId || !itemName.trim() || !price) {
+      alert('Please fill in every field')
+      return
+    }
+    const qty = Number(quantity) || 1
+    const unitPrice = Number(price)
+    const total = qty * unitPrice
+    const { error } = await supabase.from('sales_log').insert([{
+      employee_id: saleEmployeeId,
+      item_name: itemName,
+      quantity: qty,
+      price: unitPrice,
+      total: total
+    }])
+    if (error) { alert('Error: ' + error.message); return }
+    setItemName('')
+    setQuantity(1)
+    setPrice('')
+    loadAll()
+  }
+
+  async function deleteSale(id) {
+    await supabase.from('sales_log').delete().eq('id', id)
+    loadAll()
+  }
+
+  const todayTotal = sales
+    .filter(s => new Date(s.created_at).toDateString() === new Date().toDateString())
+    .reduce((sum, s) => sum + Number(s.total), 0)
 
   return (
     <div style={{ padding: 40, fontFamily: 'sans-serif', maxWidth: 600 }}>
@@ -188,8 +216,33 @@ function App() {
           {a.clock_out ? ` · Out: ${new Date(a.clock_out).toLocaleString()}` : ' · still working'}
         </div>
       ))}
+
+      <h1 style={{ marginTop: 48 }}>Sales</h1>
+      <p style={{ fontWeight: 'bold', fontSize: 18 }}>Today's total: ${todayTotal.toFixed(2)}</p>
+      <form onSubmit={addSale} style={{ marginBottom: 24 }}>
+        <select value={saleEmployeeId} onChange={e => setSaleEmployeeId(e.target.value)}
+          style={{ display: 'block', marginBottom: 8, padding: 8, width: '100%' }}>
+          <option value="">Sold by</option>
+          {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+        </select>
+        <input placeholder="Item name (e.g. Cheeseburger)" value={itemName} onChange={e => setItemName(e.target.value)}
+          style={{ display: 'block', marginBottom: 8, padding: 8, width: '100%' }} />
+        <input type="number" min="1" placeholder="Quantity" value={quantity} onChange={e => setQuantity(e.target.value)}
+          style={{ display: 'block', marginBottom: 8, padding: 8, width: '100%' }} />
+        <input type="number" step="0.01" placeholder="Price per item" value={price} onChange={e => setPrice(e.target.value)}
+          style={{ display: 'block', marginBottom: 8, padding: 8, width: '100%' }} />
+        <button type="submit" style={{ padding: '8px 16px' }}>Log sale</button>
+      </form>
+      {sales.map(s => (
+        <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #eee' }}>
+          <span>
+            {new Date(s.created_at).toLocaleString()} — {s.quantity}x {s.item_name} (${s.price} each) = ${s.total} · sold by {s.employees?.name}
+          </span>
+          <button onClick={() => deleteSale(s.id)} style={{ color: 'red' }}>Delete</button>
+        </div>
+      ))}
     </div>
   )
 }
 
-export default App
+export default App  
