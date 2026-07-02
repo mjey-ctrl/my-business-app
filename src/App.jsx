@@ -6,6 +6,7 @@ function App() {
   const [employees, setEmployees] = useState([])
   const [services, setServices] = useState([])
   const [appointments, setAppointments] = useState([])
+  const [attendance, setAttendance] = useState([])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -14,6 +15,8 @@ function App() {
   const [employeeId, setEmployeeId] = useState('')
   const [serviceId, setServiceId] = useState('')
   const [startTime, setStartTime] = useState('')
+
+  const [clockEmployeeId, setClockEmployeeId] = useState('')
 
   async function loadAll() {
     const { data: c } = await supabase.from('customers').select('*').order('created_at', { ascending: false })
@@ -27,6 +30,11 @@ function App() {
       .select('*, customers(name), employees(name), services(name)')
       .order('start_time', { ascending: true })
     setAppointments(a || [])
+    const { data: att } = await supabase
+      .from('attendance')
+      .select('*, employees(name)')
+      .order('clock_in', { ascending: false })
+    setAttendance(att || [])
   }
 
   useEffect(() => {
@@ -76,6 +84,47 @@ function App() {
     loadAll()
   }
 
+  async function clockIn() {
+    if (!clockEmployeeId) {
+      alert('Pick an employee first')
+      return
+    }
+    const { error } = await supabase.from('attendance').insert([{
+      employee_id: clockEmployeeId,
+      clock_in: new Date().toISOString()
+    }])
+    if (error) { alert('Error: ' + error.message); return }
+    loadAll()
+  }
+
+  async function clockOut() {
+    if (!clockEmployeeId) {
+      alert('Pick an employee first')
+      return
+    }
+    const { data: openShift } = await supabase
+      .from('attendance')
+      .select('*')
+      .eq('employee_id', clockEmployeeId)
+      .is('clock_out', null)
+      .order('clock_in', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (!openShift) {
+      alert('This employee is not currently clocked in')
+      return
+    }
+
+    const { error } = await supabase
+      .from('attendance')
+      .update({ clock_out: new Date().toISOString() })
+      .eq('id', openShift.id)
+
+    if (error) { alert('Error: ' + error.message); return }
+    loadAll()
+  }
+
   return (
     <div style={{ padding: 40, fontFamily: 'sans-serif', maxWidth: 600 }}>
       <h1>My Customers</h1>
@@ -120,6 +169,23 @@ function App() {
             {new Date(a.start_time).toLocaleString()} — {a.customers?.name} with {a.employees?.name} ({a.services?.name})
           </span>
           <button onClick={() => deleteAppointment(a.id)} style={{ color: 'red' }}>Delete</button>
+        </div>
+      ))}
+
+      <h1 style={{ marginTop: 48 }}>Team Attendance</h1>
+      <div style={{ marginBottom: 24 }}>
+        <select value={clockEmployeeId} onChange={e => setClockEmployeeId(e.target.value)}
+          style={{ display: 'block', marginBottom: 8, padding: 8, width: '100%' }}>
+          <option value="">Select team member</option>
+          {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+        </select>
+        <button onClick={clockIn} style={{ padding: '8px 16px', marginRight: 8 }}>Clock In</button>
+        <button onClick={clockOut} style={{ padding: '8px 16px' }}>Clock Out</button>
+      </div>
+      {attendance.map(a => (
+        <div key={a.id} style={{ padding: '8px 0', borderBottom: '1px solid #eee' }}>
+          <b>{a.employees?.name}</b> — In: {new Date(a.clock_in).toLocaleString()}
+          {a.clock_out ? ` · Out: ${new Date(a.clock_out).toLocaleString()}` : ' · still working'}
         </div>
       ))}
     </div>
