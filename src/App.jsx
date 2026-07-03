@@ -49,6 +49,7 @@ function App() {
 
   const [cart, setCart] = useState([])
   const [checkingOut, setCheckingOut] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState('Cash')
 
   const isOwner = session?.role === 'Owner'
 
@@ -275,7 +276,7 @@ function App() {
     for (const c of cart) {
       const total = c.qty * Number(c.price)
       const { error } = await supabase.from('sales_log').insert([{
-        employee_id: session.id, item_name: c.name, quantity: c.qty, price: c.price, total
+        employee_id: session.id, item_name: c.name, quantity: c.qty, price: c.price, total, payment_method: paymentMethod
       }])
       if (error) { alert('Error saving ' + c.name + ': ' + error.message); continue }
       if (c.stock_qty !== null) {
@@ -283,6 +284,7 @@ function App() {
       }
     }
     setCart([])
+    setPaymentMethod('Cash')
     setCheckingOut(false)
     await loadAll()
     alert('Sale complete!')
@@ -335,6 +337,9 @@ function App() {
   }, 0)
 
   const netProfit = rangeSalesTotal - rangeExpensesTotal - rangeSalaryTotal
+
+  const rangeCashTotal = rangeSales.filter(s => (s.payment_method || 'Cash') === 'Cash').reduce((sum, s) => sum + Number(s.total), 0)
+  const rangeGcashTotal = rangeSales.filter(s => s.payment_method === 'GCash').reduce((sum, s) => sum + Number(s.total), 0)
 
   /* ---------------- APP SHELL ---------------- */
   return (
@@ -413,6 +418,10 @@ function App() {
                 <span className="snapshot-value">${netProfit.toFixed(2)}</span>
               </div>
             </div>
+            <div className="payment-breakdown">
+              <span className="payment-chip payment-chip-cash">Cash: ${rangeCashTotal.toFixed(2)}</span>
+              <span className="payment-chip payment-chip-gcash">GCash: ${rangeGcashTotal.toFixed(2)}</span>
+            </div>
           </section>
         )}
 
@@ -454,6 +463,16 @@ function App() {
                   <button className="btn btn-danger-outline" onClick={() => removeFromCart(c.id)}>✕</button>
                 </div>
               ))}
+              <div className="payment-toggle">
+                <button
+                  className={`pay-btn ${paymentMethod === 'Cash' ? 'pay-btn-active' : ''}`}
+                  onClick={() => setPaymentMethod('Cash')}
+                >Cash</button>
+                <button
+                  className={`pay-btn ${paymentMethod === 'GCash' ? 'pay-btn-active' : ''}`}
+                  onClick={() => setPaymentMethod('GCash')}
+                >GCash</button>
+              </div>
               <div className="cart-summary">
                 <span>Total</span>
                 <span className="cart-grand-total">${cartTotal.toFixed(2)}</span>
@@ -582,7 +601,7 @@ function App() {
           <div className="list">
             {(isOwner ? sales : mySales).map(s => (
               <div className="list-row" key={s.id}>
-                <span>{new Date(s.created_at).toLocaleString()} — {s.quantity}x {s.item_name} (${s.price} each) = ${s.total} · sold by {s.employees?.name}</span>
+                <span>{new Date(s.created_at).toLocaleString()} — {s.quantity}x {s.item_name} (${s.price} each) = ${s.total} · {s.payment_method || 'Cash'} · sold by {s.employees?.name}</span>
                 {isOwner && <button className="btn btn-danger-outline" onClick={() => deleteSale(s.id)}>Delete</button>}
               </div>
             ))}
