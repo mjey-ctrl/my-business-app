@@ -392,3 +392,28 @@ h2 {
 }
 .rate-name { font-weight: 700; min-width: 90px; }
 .rate-current { color: var(--ink-soft); }
+/* ---------- LEADERBOARD ---------- */
+.leaderboard-range {
+  color: var(--ink-soft);
+  font-size: 13px;
+  margin: -10px 0 14px;
+}
+.leaderboard-list { display: flex; flex-direction: column; gap: 8px; }
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.leaderboard-rank { font-size: 20px; min-width: 30px; }
+.leaderboard-name { font-weight: 700; flex: 1; }
+.leaderboard-items { color: var(--ink-soft); font-size: 12px; }
+.leaderboard-total {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  color: var(--accent-dark);
+  font-size: 16px;
+}

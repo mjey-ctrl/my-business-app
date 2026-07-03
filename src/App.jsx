@@ -341,6 +341,16 @@ function App() {
   const rangeCashTotal = rangeSales.filter(s => (s.payment_method || 'Cash') === 'Cash').reduce((sum, s) => sum + Number(s.total), 0)
   const rangeGcashTotal = rangeSales.filter(s => s.payment_method === 'GCash').reduce((sum, s) => sum + Number(s.total), 0)
 
+  const leaderboardMap = {}
+  rangeSales.forEach(s => {
+    const key = s.employee_id
+    if (!leaderboardMap[key]) leaderboardMap[key] = { name: s.employees?.name || 'Unknown', total: 0, items: 0 }
+    leaderboardMap[key].total += Number(s.total)
+    leaderboardMap[key].items += s.quantity
+  })
+  const leaderboard = Object.values(leaderboardMap).sort((a, b) => b.total - a.total)
+  const medals = ['🥇', '🥈', '🥉']
+
   /* ---------------- APP SHELL ---------------- */
   return (
     <div className="app">
@@ -421,6 +431,25 @@ function App() {
             <div className="payment-breakdown">
               <span className="payment-chip payment-chip-cash">Cash: ${rangeCashTotal.toFixed(2)}</span>
               <span className="payment-chip payment-chip-gcash">GCash: ${rangeGcashTotal.toFixed(2)}</span>
+            </div>
+          </section>
+        )}
+
+        {/* -------- EMPLOYEE LEADERBOARD -------- */}
+        {isOwner && (
+          <section className="card">
+            <h2>Employee Leaderboard</h2>
+            <p className="leaderboard-range">Ranked by sales, {rangeStart} to {rangeEnd}</p>
+            <div className="leaderboard-list">
+              {leaderboard.map((emp, i) => (
+                <div className="leaderboard-row" key={emp.name + i}>
+                  <span className="leaderboard-rank">{medals[i] || `#${i + 1}`}</span>
+                  <span className="leaderboard-name">{emp.name}</span>
+                  <span className="leaderboard-items">{emp.items} items sold</span>
+                  <span className="leaderboard-total">${emp.total.toFixed(2)}</span>
+                </div>
+              ))}
+              {leaderboard.length === 0 && <p>No sales in this date range yet.</p>}
             </div>
           </section>
         )}
