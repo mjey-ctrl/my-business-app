@@ -10,19 +10,12 @@ function App() {
 
   const [customers, setCustomers] = useState([])
   const [employees, setEmployees] = useState([])
-  const [services, setServices] = useState([])
-  const [appointments, setAppointments] = useState([])
   const [attendance, setAttendance] = useState([])
   const [sales, setSales] = useState([])
   const [menuItems, setMenuItems] = useState([])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-
-  const [customerId, setCustomerId] = useState('')
-  const [employeeId, setEmployeeId] = useState('')
-  const [serviceId, setServiceId] = useState('')
-  const [startTime, setStartTime] = useState('')
 
   const [mName, setMName] = useState('')
   const [mPrice, setMPrice] = useState('')
@@ -40,13 +33,6 @@ function App() {
     setCustomers(c || [])
     const { data: e } = await supabase.from('employees').select('*')
     setEmployees(e || [])
-    const { data: s } = await supabase.from('services').select('*')
-    setServices(s || [])
-    const { data: a } = await supabase
-      .from('appointments')
-      .select('*, customers(name), employees(name), services(name)')
-      .order('start_time', { ascending: true })
-    setAppointments(a || [])
     const { data: att } = await supabase
       .from('attendance')
       .select('*, employees(name)')
@@ -145,20 +131,6 @@ function App() {
   }
   async function deleteCustomer(id) {
     await supabase.from('customers').delete().eq('id', id)
-    loadAll()
-  }
-  async function addAppointment(e) {
-    e.preventDefault()
-    if (!customerId || !employeeId || !serviceId || !startTime) { alert('Please fill in every field'); return }
-    const { error } = await supabase.from('appointments').insert([{
-      customer_id: customerId, employee_id: employeeId, service_id: serviceId, start_time: startTime, status: 'Scheduled'
-    }])
-    if (error) { alert('Error: ' + error.message); return }
-    setCustomerId(''); setEmployeeId(''); setServiceId(''); setStartTime('')
-    loadAll()
-  }
-  async function deleteAppointment(id) {
-    await supabase.from('appointments').delete().eq('id', id)
     loadAll()
   }
   async function clockIn() {
@@ -262,9 +234,21 @@ function App() {
     alert('Sale complete!')
   }
 
-  const todayTotal = sales
-    .filter(s => new Date(s.created_at).toDateString() === new Date().toDateString())
-    .reduce((sum, s) => sum + Number(s.total), 0)
+  /* ---------------- TODAY SNAPSHOT ---------------- */
+  const todaySales = sales.filter(s => new Date(s.created_at).toDateString() === new Date().toDateString())
+  const todayTotal = todaySales.reduce((sum, s) => sum + Number(s.total), 0)
+
+  const workingNow = attendance.filter(a => !a.clock_out)
+  const workingNowCount = new Set(workingNow.map(a => a.employee_id)).size
+
+  const itemCounts = {}
+  todaySales.forEach(s => {
+    itemCounts[s.item_name] = (itemCounts[s.item_name] || 0) + s.quantity
+  })
+  const bestSellerEntry = Object.entries(itemCounts).sort((a, b) => b[1] - a[1])[0]
+  const bestSeller = bestSellerEntry ? `${bestSellerEntry[0]} (${bestSellerEntry[1]} sold)` : '—'
+
+  const lowStockItems = menuItems.filter(m => m.stock_qty !== null && m.stock_qty <= 5)
 
   const mySales = sales.filter(s => s.employee_id === session.id)
   const myAttendance = attendance.filter(a => a.employee_id === session.id)
@@ -283,11 +267,39 @@ function App() {
 
       <main className="content">
 
+        {/* -------- TODAY AT A GLANCE -------- */}
+        <section className="card">
+          <h2>Today at a Glance</h2>
+          <div className="snapshot-grid">
+            <div className="snapshot-box">
+              <span className="snapshot-label">Today's Sales</span>
+              <span className="snapshot-value">${todayTotal.toFixed(2)}</span>
+            </div>
+            <div className="snapshot-box">
+              <span className="snapshot-label">Working Now</span>
+              <span className="snapshot-value">{workingNowCount}</span>
+            </div>
+            <div className="snapshot-box">
+              <span className="snapshot-label">Best Seller Today</span>
+              <span className="snapshot-value snapshot-value-sm">{bestSeller}</span>
+            </div>
+            <div className={`snapshot-box ${lowStockItems.length > 0 ? 'snapshot-box-alert' : ''}`}>
+              <span className="snapshot-label">Low Stock Items</span>
+              <span className="snapshot-value">{lowStockItems.length}</span>
+            </div>
+          </div>
+          {lowStockItems.length > 0 && (
+            <div className="snapshot-lowstock-list">
+              {lowStockItems.map(item => (
+                <span key={item.id} className="lowstock-chip">{item.name}: {item.stock_qty} left</span>
+              ))}
+            </div>
+          )}
+        </section>
+
         {/* -------- POS -------- */}
         <section className="card">
           <h2>Point of Sale</h2>
-          <p className="today-total">Today's total: ${todayTotal.toFixed(2)}</p>
-
           <div className="pos-grid">
             {menuItems.map(m => (
               <button
@@ -347,36 +359,6 @@ function App() {
                 <div className="list-row" key={c.id}>
                   <span>{c.name} {c.email ? `— ${c.email}` : ''}</span>
                   <button className="btn btn-danger-outline" onClick={() => deleteCustomer(c.id)}>Delete</button>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {isOwner && (
-          <section className="card">
-            <h2>Appointments</h2>
-            <form onSubmit={addAppointment} className="form-grid">
-              <select className="input" value={customerId} onChange={e => setCustomerId(e.target.value)}>
-                <option value="">Select customer</option>
-                {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-              <select className="input" value={employeeId} onChange={e => setEmployeeId(e.target.value)}>
-                <option value="">Select employee</option>
-                {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-              </select>
-              <select className="input" value={serviceId} onChange={e => setServiceId(e.target.value)}>
-                <option value="">Select service</option>
-                {services.map(s => <option key={s.id} value={s.id}>{s.name} — ${s.price}</option>)}
-              </select>
-              <input className="input" type="datetime-local" value={startTime} onChange={e => setStartTime(e.target.value)} />
-              <button className="btn btn-primary" type="submit">Add appointment</button>
-            </form>
-            <div className="list">
-              {appointments.map(a => (
-                <div className="list-row" key={a.id}>
-                  <span>{new Date(a.start_time).toLocaleString()} — {a.customers?.name} with {a.employees?.name} ({a.services?.name})</span>
-                  <button className="btn btn-danger-outline" onClick={() => deleteAppointment(a.id)}>Delete</button>
                 </div>
               ))}
             </div>

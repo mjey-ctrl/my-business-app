@@ -1,447 +1,63 @@
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #f4f5f7;
-  color: #1a1d23;
-}
-
-/* ---------- LOGIN SCREEN ---------- */
-.login-wrap {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at top, #1a1a1a, #000000);
-  padding: 20px;
-}
-
-.login-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 40px 32px;
-  width: 100%;
-  max-width: 360px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-  text-align: center;
-}
-
-.login-logo {
-  font-size: 40px;
-  margin-bottom: 8px;
-}
-
-.login-card h1 {
-  margin: 0 0 4px 0;
-  font-size: 22px;
-  font-weight: 700;
-}
-
-.login-sub {
-  color: #6b7280;
-  font-size: 14px;
-  margin-bottom: 24px;
-}
-
-.field-label {
-  display: block;
-  text-align: left;
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin-bottom: 6px;
-  margin-top: 14px;
-}
-
-.error-text {
-  color: #dc2626;
-  font-size: 13px;
-  margin-top: 12px;
-  text-align: left;
-}
-
-.btn-block {
-  width: 100%;
-  margin-top: 20px;
-}
-
-/* ---------- APP SHELL ---------- */
-.app {
-  min-height: 100vh;
-}
-
-.topbar {
-  background: #0d0d0d;
-  color: #f5e6c8;
-  padding: 14px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  font-size: 18px;
-}
-
-.brand-logo {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-}
-
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-name {
-  font-size: 14px;
-  opacity: 0.85;
-}
-
-.role-badge {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 4px 10px;
-  border-radius: 999px;
-}
-
-.role-owner {
-  background: linear-gradient(135deg, #d4af37, #f5d787);
-  color: #1a1a1a;
-}
-
-.role-employee {
-  background: #262626;
-  color: #d4af37;
-}
-
-.content {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 24px 20px 60px 20px;
-}
-
-/* ---------- CARDS ---------- */
-.card {
-  background: white;
-  border-radius: 14px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.08);
-}
-
-.card h2 {
-  margin: 0 0 16px 0;
-  font-size: 17px;
-  font-weight: 700;
-  color: #111827;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #eef0f3;
-}
-
-.today-total {
-  font-size: 22px;
-  font-weight: 800;
-  color: #b8860b;
-  margin: -4px 0 16px 0;
-}
-
-/* ---------- FORMS ---------- */
-.form-row, .form-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.input {
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-  width: 100%;
-  background: #fff;
-  color: #111827;
-  transition: border-color 0.15s;
-}
-
-.input:focus {
-  outline: none;
-  border-color: #d4af37;
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
-}
-
-.input-sm {
-  width: 110px;
-}
-
-/* ---------- BUTTONS ---------- */
-.btn {
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.15s, background 0.15s;
-}
-
-.btn:hover {
-  opacity: 0.9;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #d4af37, #b8860b);
-  color: #1a1a1a;
-}
-
-.btn-secondary {
-  background: #e5e7eb;
-  color: #111827;
-}
-
-.btn-ghost {
-  background: transparent;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.btn-danger-outline {
-  background: transparent;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-  padding: 6px 12px;
-  font-size: 13px;
-}
-
-/* ---------- LISTS ---------- */
-.list {
-  display: flex;
-  flex-direction: column;
-}
-
-.list-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid #f1f2f4;
-  font-size: 14px;
-}
-
-.list-row:last-child {
-  border-bottom: none;
-}
-
-/* ---------- MENU / INVENTORY ---------- */
-.menu-row {
-  padding: 12px 0;
-  border-bottom: 1px solid #f1f2f4;
-}
-
-.menu-row:last-child {
-  border-bottom: none;
-}
-
-.menu-row-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  font-size: 14px;
-}
-
-.stock-ok {
-  color: #16a34a;
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.stock-low {
-  color: #dc2626;
-  font-weight: 700;
-  font-size: 13px;
-}
-
-.restock-row {
-  margin-top: 8px;
-  display: flex;
-  gap: 8px;
-}
-
-/* ---------- ATTENDANCE ---------- */
-.clock-actions {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-/* ---------- QUICK QC LOGIN LOGO ---------- */
-.login-logo-img {
-  width: 92px;
-  height: 92px;
-  object-fit: contain;
-  margin-bottom: 8px;
-}
-
-/* ---------- POS ---------- */
-.pos-grid {
+/* ---------- TODAY SNAPSHOT ---------- */
+.snapshot-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
 }
 
 @media (min-width: 480px) {
-  .pos-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .snapshot-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
-.pos-item {
+.snapshot-box {
   background: #fafafa;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 16px 10px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 4px;
-  cursor: pointer;
-  transition: border-color 0.15s, transform 0.1s;
-  text-align: center;
 }
 
-.pos-item:hover:not(:disabled) {
-  border-color: #d4af37;
-  transform: translateY(-2px);
+.snapshot-box-alert {
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 
-.pos-item:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.pos-item-name {
-  font-weight: 700;
-  font-size: 14px;
-  color: #111827;
-}
-
-.pos-item-price {
-  font-weight: 800;
-  font-size: 16px;
-  color: #b8860b;
-}
-
-.pos-item-stock {
+.snapshot-label {
   font-size: 11px;
-  color: #16a34a;
-}
-
-.pos-item-stock-low {
-  font-size: 11px;
-  color: #dc2626;
   font-weight: 700;
-}
-
-.cart-panel {
-  background: #fdfaf3;
-  border: 1px solid #eee0bd;
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.cart-panel h3 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: #6b7280;
 }
 
-.cart-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid #f1e6c8;
+.snapshot-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.snapshot-value-sm {
   font-size: 14px;
-}
-
-.cart-row-name {
-  flex: 1;
-}
-
-.cart-qty-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.qty-btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  border: 1px solid #d4af37;
-  background: white;
-  color: #b8860b;
   font-weight: 700;
-  cursor: pointer;
 }
 
-.cart-row-total {
-  width: 60px;
-  text-align: right;
+.snapshot-lowstock-list {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lowstock-chip {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
   font-weight: 600;
-}
-
-.cart-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 0 4px 0;
-  font-weight: 700;
-  font-size: 15px;
-}
-
-.cart-grand-total {
-  font-size: 20px;
-  color: #b8860b;
-}
-
-/* ---------- RESPONSIVE ---------- */
-@media (min-width: 640px) {
-  .form-row {
-    flex-direction: row;
-  }
-  .form-row .input {
-    flex: 1;
-  }
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-  .form-grid button {
-    grid-column: span 2;
-  }
 }
