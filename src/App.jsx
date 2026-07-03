@@ -24,14 +24,14 @@ function App() {
   const [serviceId, setServiceId] = useState('')
   const [startTime, setStartTime] = useState('')
 
-  const [saleMenuItemId, setSaleMenuItemId] = useState('')
-  const [quantity, setQuantity] = useState(1)
-
   const [mName, setMName] = useState('')
   const [mPrice, setMPrice] = useState('')
   const [mStock, setMStock] = useState('')
   const [mCategory, setMCategory] = useState('')
   const [restockAmounts, setRestockAmounts] = useState({})
+
+  const [cart, setCart] = useState([]) // [{ id, name, price, stock_qty, qty }]
+  const [checkingOut, setCheckingOut] = useState(false)
 
   const isOwner = session?.role === 'Owner'
 
@@ -175,23 +175,6 @@ function App() {
     if (error) { alert('Error: ' + error.message); return }
     loadAll()
   }
-  async function addSale(e) {
-    e.preventDefault()
-    if (!saleMenuItemId) { alert('Please pick an item'); return }
-    const item = menuItems.find(m => m.id === saleMenuItemId)
-    const qty = Number(quantity) || 1
-    if (item.stock_qty !== null && qty > item.stock_qty) { alert(`Only ${item.stock_qty} left in stock`); return }
-    const total = qty * Number(item.price)
-    const { error } = await supabase.from('sales_log').insert([{
-      employee_id: session.id, item_name: item.name, quantity: qty, price: item.price, total
-    }])
-    if (error) { alert('Error: ' + error.message); return }
-    if (item.stock_qty !== null) {
-      await supabase.from('menu_items').update({ stock_qty: item.stock_qty - qty }).eq('id', item.id)
-    }
-    setSaleMenuItemId(''); setQuantity(1)
-    loadAll()
-  }
   async function deleteSale(id) {
     await supabase.from('sales_log').delete().eq('id', id)
     loadAll()
@@ -223,6 +206,62 @@ function App() {
     setSession(null)
   }
 
+  /* ---------------- POS CART ---------------- */
+  function addToCart(item) {
+    const inCartQty = cart.find(c => c.id === item.id)?.qty || 0
+    if (item.stock_qty !== null && inCartQty + 1 > item.stock_qty) {
+      alert(`Only ${item.stock_qty} left in stock`)
+      return
+    }
+    setCart(prev => {
+      const existing = prev.find(c => c.id === item.id)
+      if (existing) {
+        return prev.map(c => c.id === item.id ? { ...c, qty: c.qty + 1 } : c)
+      }
+      return [...prev, { id: item.id, name: item.name, price: item.price, stock_qty: item.stock_qty, qty: 1 }]
+    })
+  }
+
+  function changeCartQty(itemId, delta) {
+    setCart(prev => prev
+      .map(c => {
+        if (c.id !== itemId) return c
+        const newQty = c.qty + delta
+        if (c.stock_qty !== null && newQty > c.stock_qty) {
+          alert(`Only ${c.stock_qty} left in stock`)
+          return c
+        }
+        return { ...c, qty: newQty }
+      })
+      .filter(c => c.qty > 0)
+    )
+  }
+
+  function removeFromCart(itemId) {
+    setCart(prev => prev.filter(c => c.id !== itemId))
+  }
+
+  const cartTotal = cart.reduce((sum, c) => sum + c.price * c.qty, 0)
+
+  async function checkout() {
+    if (cart.length === 0) return
+    setCheckingOut(true)
+    for (const c of cart) {
+      const total = c.qty * Number(c.price)
+      const { error } = await supabase.from('sales_log').insert([{
+        employee_id: session.id, item_name: c.name, quantity: c.qty, price: c.price, total
+      }])
+      if (error) { alert('Error saving ' + c.name + ': ' + error.message); continue }
+      if (c.stock_qty !== null) {
+        await supabase.from('menu_items').update({ stock_qty: c.stock_qty - c.qty }).eq('id', c.id)
+      }
+    }
+    setCart([])
+    setCheckingOut(false)
+    await loadAll()
+    alert('Sale complete!')
+  }
+
   const todayTotal = sales
     .filter(s => new Date(s.created_at).toDateString() === new Date().toDateString())
     .reduce((sum, s) => sum + Number(s.total), 0)
@@ -243,6 +282,57 @@ function App() {
       </header>
 
       <main className="content">
+
+        {/* -------- POS -------- */}
+        <section className="card">
+          <h2>Point of Sale</h2>
+          <p className="today-total">Today's total: ${todayTotal.toFixed(2)}</p>
+
+          <div className="pos-grid">
+            {menuItems.map(m => (
+              <button
+                key={m.id}
+                className="pos-item"
+                disabled={m.stock_qty !== null && m.stock_qty <= 0}
+                onClick={() => addToCart(m)}
+              >
+                <span className="pos-item-name">{m.name}</span>
+                <span className="pos-item-price">${m.price}</span>
+                {m.stock_qty !== null && (
+                  <span className={m.stock_qty <= 5 ? 'pos-item-stock-low' : 'pos-item-stock'}>
+                    {m.stock_qty <= 0 ? 'Out of stock' : `${m.stock_qty} left`}
+                  </span>
+                )}
+              </button>
+            ))}
+            {menuItems.length === 0 && <p>No menu items yet — add some in Menu & Inventory below.</p>}
+          </div>
+
+          {cart.length > 0 && (
+            <div className="cart-panel">
+              <h3>Current order</h3>
+              {cart.map(c => (
+                <div className="cart-row" key={c.id}>
+                  <span className="cart-row-name">{c.name}</span>
+                  <div className="cart-qty-controls">
+                    <button className="qty-btn" onClick={() => changeCartQty(c.id, -1)}>−</button>
+                    <span>{c.qty}</span>
+                    <button className="qty-btn" onClick={() => changeCartQty(c.id, 1)}>+</button>
+                  </div>
+                  <span className="cart-row-total">${(c.price * c.qty).toFixed(2)}</span>
+                  <button className="btn btn-danger-outline" onClick={() => removeFromCart(c.id)}>✕</button>
+                </div>
+              ))}
+              <div className="cart-summary">
+                <span>Total</span>
+                <span className="cart-grand-total">${cartTotal.toFixed(2)}</span>
+              </div>
+              <button className="btn btn-primary btn-block" onClick={checkout} disabled={checkingOut}>
+                {checkingOut ? 'Processing...' : 'Complete Sale'}
+              </button>
+            </div>
+          )}
+        </section>
 
         {isOwner && (
           <section className="card">
@@ -342,16 +432,7 @@ function App() {
         </section>
 
         <section className="card">
-          <h2>Sales</h2>
-          <p className="today-total">Today's total: ${todayTotal.toFixed(2)}</p>
-          <form onSubmit={addSale} className="form-grid">
-            <select className="input" value={saleMenuItemId} onChange={e => setSaleMenuItemId(e.target.value)}>
-              <option value="">Select item</option>
-              {menuItems.map(m => <option key={m.id} value={m.id}>{m.name} — ${m.price} ({m.stock_qty} left)</option>)}
-            </select>
-            <input className="input" type="number" min="1" placeholder="Quantity" value={quantity} onChange={e => setQuantity(e.target.value)} />
-            <button className="btn btn-primary" type="submit">Log sale</button>
-          </form>
+          <h2>Sales History</h2>
           <div className="list">
             {(isOwner ? sales : mySales).map(s => (
               <div className="list-row" key={s.id}>
