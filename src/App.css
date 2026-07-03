@@ -64,7 +64,6 @@ h2 {
   position: relative;
 }
 
-/* receipt-tear notch across the top of every card */
 .card::before {
   content: "";
   position: absolute;
@@ -350,3 +349,46 @@ h2 {
 .restock-row { display: flex; gap: 8px; margin-top: 10px; }
 
 .clock-actions { display: flex; gap: 10px; margin-bottom: 16px; }
+
+/* ---------- PROFIT SUMMARY / EMPLOYEE RATES ---------- */
+.snapshot-box-good {
+  background: #EAF4EC;
+  border-color: #BFE0C6;
+}
+.snapshot-box-good .snapshot-value { color: var(--good); }
+.snapshot-box-alert .snapshot-value { color: var(--bad); }
+
+.date-range-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.rate-panel {
+  margin: 16px 0;
+  padding: 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.rate-panel h3 {
+  font-family: 'Inter';
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.rate-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.rate-name { font-weight: 700; min-width: 90px; }
+.rate-current { color: var(--ink-soft); }

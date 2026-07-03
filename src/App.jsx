@@ -2,6 +2,20 @@ import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
 import './App.css'
 
+function startOfWeek(d) {
+  const date = new Date(d)
+  const day = date.getDay()
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1) // Monday
+  const monday = new Date(date.setDate(diff))
+  return monday.toISOString().slice(0, 10)
+}
+function endOfWeek(d) {
+  const monday = new Date(startOfWeek(d))
+  const sunday = new Date(monday)
+  sunday.setDate(monday.getDate() + 6)
+  return sunday.toISOString().slice(0, 10)
+}
+
 function App() {
   const [session, setSession] = useState(() => {
     const saved = localStorage.getItem('session')
@@ -13,6 +27,7 @@ function App() {
   const [attendance, setAttendance] = useState([])
   const [sales, setSales] = useState([])
   const [menuItems, setMenuItems] = useState([])
+  const [expenses, setExpenses] = useState([])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -23,7 +38,16 @@ function App() {
   const [mCategory, setMCategory] = useState('')
   const [restockAmounts, setRestockAmounts] = useState({})
 
-  const [cart, setCart] = useState([]) // [{ id, name, price, stock_qty, qty }]
+  const [expAmount, setExpAmount] = useState('')
+  const [expCategory, setExpCategory] = useState('Ingredients')
+  const [expNote, setExpNote] = useState('')
+
+  const [rateInputs, setRateInputs] = useState({})
+
+  const [rangeStart, setRangeStart] = useState(() => startOfWeek(new Date()))
+  const [rangeEnd, setRangeEnd] = useState(() => endOfWeek(new Date()))
+
+  const [cart, setCart] = useState([])
   const [checkingOut, setCheckingOut] = useState(false)
 
   const isOwner = session?.role === 'Owner'
@@ -48,6 +72,11 @@ function App() {
       .select('*')
       .order('name', { ascending: true })
     setMenuItems(mi || [])
+    const { data: ex } = await supabase
+      .from('expenses')
+      .select('*, employees(name)')
+      .order('created_at', { ascending: false })
+    setExpenses(ex || [])
   }
 
   useEffect(() => {
@@ -173,6 +202,31 @@ function App() {
     setRestockAmounts(r => ({ ...r, [itemId]: '' }))
     loadAll()
   }
+  async function addExpense(e) {
+    e.preventDefault()
+    if (!expAmount || Number(expAmount) <= 0) { alert('Enter a valid amount'); return }
+    const { error } = await supabase.from('expenses').insert([{
+      amount: Number(expAmount), category: expCategory, note: expNote, employee_id: session.id
+    }])
+    if (error) { alert('Error: ' + error.message); return }
+    setExpAmount(''); setExpNote('')
+    loadAll()
+  }
+  async function deleteExpense(id) {
+    await supabase.from('expenses').delete().eq('id', id)
+    loadAll()
+  }
+  async function updateRate(employeeId) {
+    const rate = Number(rateInputs[employeeId])
+    if (rate < 0 || rateInputs[employeeId] === undefined || rateInputs[employeeId] === '') {
+      alert('Enter a valid daily rate')
+      return
+    }
+    const { error } = await supabase.from('employees').update({ daily_rate: rate }).eq('id', employeeId)
+    if (error) { alert('Error: ' + error.message); return }
+    setRateInputs(r => ({ ...r, [employeeId]: '' }))
+    loadAll()
+  }
   function logout() {
     localStorage.removeItem('session')
     setSession(null)
@@ -253,6 +307,35 @@ function App() {
   const mySales = sales.filter(s => s.employee_id === session.id)
   const myAttendance = attendance.filter(a => a.employee_id === session.id)
 
+  /* ---------------- PROFIT SUMMARY (date range) ---------------- */
+  function inRange(dateStr) {
+    const d = new Date(dateStr).toISOString().slice(0, 10)
+    return d >= rangeStart && d <= rangeEnd
+  }
+
+  const rangeSales = sales.filter(s => inRange(s.created_at))
+  const rangeSalesTotal = rangeSales.reduce((sum, s) => sum + Number(s.total), 0)
+
+  const rangeExpenses = expenses.filter(ex => inRange(ex.created_at))
+  const rangeExpensesTotal = rangeExpenses.reduce((sum, ex) => sum + Number(ex.amount), 0)
+
+  const rangeAttendance = attendance.filter(a => inRange(a.clock_in))
+  const daysWorkedByEmployee = {}
+  rangeAttendance.forEach(a => {
+    const dayKey = a.employee_id + '_' + new Date(a.clock_in).toDateString()
+    daysWorkedByEmployee[dayKey] = a.employee_id
+  })
+  const dayCountByEmployee = {}
+  Object.values(daysWorkedByEmployee).forEach(empId => {
+    dayCountByEmployee[empId] = (dayCountByEmployee[empId] || 0) + 1
+  })
+  const rangeSalaryTotal = Object.entries(dayCountByEmployee).reduce((sum, [empId, days]) => {
+    const emp = employees.find(e => e.id === empId)
+    return sum + (days * Number(emp?.daily_rate || 0))
+  }, 0)
+
+  const netProfit = rangeSalesTotal - rangeExpensesTotal - rangeSalaryTotal
+
   /* ---------------- APP SHELL ---------------- */
   return (
     <div className="app">
@@ -296,6 +379,42 @@ function App() {
             </div>
           )}
         </section>
+
+        {/* -------- PROFIT SUMMARY -------- */}
+        {isOwner && (
+          <section className="card">
+            <h2>Profit Summary</h2>
+            <div className="date-range-row">
+              <div>
+                <label className="field-label">From</label>
+                <input className="input" type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} />
+              </div>
+              <div>
+                <label className="field-label">To</label>
+                <input className="input" type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} />
+              </div>
+              <button className="btn btn-secondary" onClick={() => { setRangeStart(startOfWeek(new Date())); setRangeEnd(endOfWeek(new Date())) }}>This Week</button>
+            </div>
+            <div className="snapshot-grid">
+              <div className="snapshot-box">
+                <span className="snapshot-label">Sales</span>
+                <span className="snapshot-value">${rangeSalesTotal.toFixed(2)}</span>
+              </div>
+              <div className="snapshot-box">
+                <span className="snapshot-label">Expenses</span>
+                <span className="snapshot-value">${rangeExpensesTotal.toFixed(2)}</span>
+              </div>
+              <div className="snapshot-box">
+                <span className="snapshot-label">Salaries</span>
+                <span className="snapshot-value">${rangeSalaryTotal.toFixed(2)}</span>
+              </div>
+              <div className={`snapshot-box ${netProfit >= 0 ? 'snapshot-box-good' : 'snapshot-box-alert'}`}>
+                <span className="snapshot-label">Net Profit</span>
+                <span className="snapshot-value">${netProfit.toFixed(2)}</span>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* -------- POS -------- */}
         <section className="card">
@@ -345,6 +464,34 @@ function App() {
             </div>
           )}
         </section>
+
+        {isOwner && (
+          <section className="card">
+            <h2>Expenses</h2>
+            <form onSubmit={addExpense} className="form-row">
+              <input className="input" type="number" step="0.01" placeholder="Amount" value={expAmount} onChange={e => setExpAmount(e.target.value)} />
+              <select className="input" value={expCategory} onChange={e => setExpCategory(e.target.value)}>
+                <option>Ingredients</option>
+                <option>Electricity</option>
+                <option>Rent</option>
+                <option>Supplies</option>
+                <option>Gas/Fuel</option>
+                <option>Other</option>
+              </select>
+              <button className="btn btn-primary" type="submit">Add expense</button>
+            </form>
+            <input className="input" placeholder="Note (optional)" value={expNote} onChange={e => setExpNote(e.target.value)} style={{ marginBottom: '14px', width: '100%' }} />
+            <div className="list">
+              {expenses.map(ex => (
+                <div className="list-row" key={ex.id}>
+                  <span>{new Date(ex.created_at).toLocaleDateString()} — <b>{ex.category}</b>: ${Number(ex.amount).toFixed(2)} {ex.note ? `(${ex.note})` : ''} · logged by {ex.employees?.name}</span>
+                  <button className="btn btn-danger-outline" onClick={() => deleteExpense(ex.id)}>Delete</button>
+                </div>
+              ))}
+              {expenses.length === 0 && <p>No expenses logged yet.</p>}
+            </div>
+          </section>
+        )}
 
         {isOwner && (
           <section className="card">
@@ -403,6 +550,23 @@ function App() {
             <button className="btn btn-primary" onClick={clockIn}>Clock In</button>
             <button className="btn btn-secondary" onClick={clockOut}>Clock Out</button>
           </div>
+
+          {isOwner && (
+            <div className="rate-panel">
+              <h3>Employee Daily Rate</h3>
+              {employees.map(emp => (
+                <div className="rate-row" key={emp.id}>
+                  <span className="rate-name">{emp.name}</span>
+                  <span className="rate-current">Current: ${Number(emp.daily_rate || 0).toFixed(2)}/day</span>
+                  <input className="input input-sm" type="number" placeholder="New rate"
+                    value={rateInputs[emp.id] || ''}
+                    onChange={e => setRateInputs(r => ({ ...r, [emp.id]: e.target.value }))} />
+                  <button className="btn btn-secondary" onClick={() => updateRate(emp.id)}>Save</button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="list">
             {(isOwner ? attendance : myAttendance).map(a => (
               <div className="list-row" key={a.id}>
