@@ -103,17 +103,14 @@ function App() {
         return
       }
       const { data, error } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('id', selectedId)
-        .eq('pin', pin)
-        .single()
+        .rpc('verify_login', { emp_id: selectedId, input_pin: pin })
 
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         setError('Incorrect PIN. Try again.')
         return
       }
-      const newSession = { id: data.id, name: data.name, role: data.role }
+      const match = data[0]
+      const newSession = { id: match.id, name: match.name, role: match.role }
       localStorage.setItem('session', JSON.stringify(newSession))
       setSession(newSession)
     }
