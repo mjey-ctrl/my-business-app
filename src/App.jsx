@@ -381,6 +381,25 @@ function App() {
   const leaderboard = Object.values(leaderboardMap).sort((a, b) => b.total - a.total)
   const medals = ['🥇', '🥈', '🥉']
 
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const salesByDay = [0, 0, 0, 0, 0, 0, 0]
+  const salesByHour = new Array(24).fill(0)
+  rangeSales.forEach(s => {
+    const d = new Date(s.created_at)
+    salesByDay[d.getDay()] += Number(s.total)
+    salesByHour[d.getHours()] += Number(s.total)
+  })
+  const maxDaySales = Math.max(...salesByDay, 1)
+  const maxHourSales = Math.max(...salesByHour, 1)
+  const busiestDayIndex = salesByDay.indexOf(Math.max(...salesByDay))
+  const busiestHour = salesByHour.indexOf(Math.max(...salesByHour))
+  function formatHour(h) {
+    if (h === 0) return '12am'
+    if (h < 12) return `${h}am`
+    if (h === 12) return '12pm'
+    return `${h - 12}pm`
+  }
+
   /* ---------------- APP SHELL ---------------- */
   return (
     <div className="app">
@@ -480,6 +499,41 @@ function App() {
                 </div>
               ))}
               {leaderboard.length === 0 && <p>No sales in this date range yet.</p>}
+            </div>
+          </section>
+        )}
+
+        {/* -------- SALES REPORTS -------- */}
+        {isOwner && (
+          <section className="card">
+            <h2>Sales Reports</h2>
+            <p className="leaderboard-range">{rangeStart} to {rangeEnd} · Busiest day: {dayNames[busiestDayIndex]} · Busiest hour: {formatHour(busiestHour)}</p>
+
+            <h3>By Day of Week</h3>
+            <div className="bar-chart">
+              {salesByDay.map((total, i) => (
+                <div className="bar-row" key={i}>
+                  <span className="bar-label">{dayNames[i]}</span>
+                  <div className="bar-track">
+                    <div className="bar-fill" style={{ width: `${(total / maxDaySales) * 100}%` }}></div>
+                  </div>
+                  <span className="bar-value">₱{total.toFixed(0)}</span>
+                </div>
+              ))}
+            </div>
+
+            <h3 style={{ marginTop: '20px' }}>By Hour of Day</h3>
+            <div className="bar-chart">
+              {salesByHour.map((total, h) => total > 0 && (
+                <div className="bar-row" key={h}>
+                  <span className="bar-label">{formatHour(h)}</span>
+                  <div className="bar-track">
+                    <div className="bar-fill" style={{ width: `${(total / maxHourSales) * 100}%` }}></div>
+                  </div>
+                  <span className="bar-value">₱{total.toFixed(0)}</span>
+                </div>
+              ))}
+              {salesByHour.every(t => t === 0) && <p>No sales in this date range yet.</p>}
             </div>
           </section>
         )}
