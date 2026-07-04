@@ -189,6 +189,11 @@ function App() {
     await supabase.from('sales_log').delete().eq('id', id)
     loadAll()
   }
+  async function deleteAttendance(id) {
+    if (!window.confirm('Delete this attendance record? This cannot be undone.')) return
+    await supabase.from('attendance').delete().eq('id', id)
+    loadAll()
+  }
   async function addMenuItem(e) {
     e.preventDefault()
     if (!mName.trim() || !mPrice) { alert('Item name and price are required'); return }
@@ -704,6 +709,7 @@ function App() {
               <div className="list-row" key={a.id}>
                 <span><b>{a.employees?.name}</b> — In: {new Date(a.clock_in).toLocaleString()}
                   {a.clock_out ? ` · Out: ${new Date(a.clock_out).toLocaleString()}` : ' · still working'}</span>
+                {isOwner && <button className="btn btn-danger-outline" onClick={() => deleteAttendance(a.id)}>Delete</button>}
               </div>
             ))}
           </div>
