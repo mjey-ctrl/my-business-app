@@ -160,6 +160,7 @@ function App() {
     loadAll()
   }
   async function deleteCustomer(id) {
+    if (!window.confirm('Delete this customer? This cannot be undone.')) return
     await supabase.from('customers').delete().eq('id', id)
     loadAll()
   }
@@ -178,6 +179,7 @@ function App() {
     loadAll()
   }
   async function deleteSale(id) {
+    if (!window.confirm('Delete this sale record? This cannot be undone.')) return
     await supabase.from('sales_log').delete().eq('id', id)
     loadAll()
   }
@@ -192,6 +194,7 @@ function App() {
     loadAll()
   }
   async function deleteMenuItem(id) {
+    if (!window.confirm('Delete this menu item? This cannot be undone.')) return
     await supabase.from('menu_items').delete().eq('id', id)
     loadAll()
   }
@@ -214,6 +217,7 @@ function App() {
     loadAll()
   }
   async function deleteExpense(id) {
+    if (!window.confirm('Delete this expense? This cannot be undone.')) return
     await supabase.from('expenses').delete().eq('id', id)
     loadAll()
   }
