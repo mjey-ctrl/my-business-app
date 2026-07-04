@@ -371,7 +371,7 @@ function App() {
           <div className="snapshot-grid">
             <div className="snapshot-box">
               <span className="snapshot-label">Today's Sales</span>
-              <span className="snapshot-value">${todayTotal.toFixed(2)}</span>
+              <span className="snapshot-value">₱{todayTotal.toFixed(2)}</span>
             </div>
             <div className="snapshot-box">
               <span className="snapshot-label">Working Now</span>
@@ -413,24 +413,24 @@ function App() {
             <div className="snapshot-grid">
               <div className="snapshot-box">
                 <span className="snapshot-label">Sales</span>
-                <span className="snapshot-value">${rangeSalesTotal.toFixed(2)}</span>
+                <span className="snapshot-value">₱{rangeSalesTotal.toFixed(2)}</span>
               </div>
               <div className="snapshot-box">
                 <span className="snapshot-label">Expenses</span>
-                <span className="snapshot-value">${rangeExpensesTotal.toFixed(2)}</span>
+                <span className="snapshot-value">₱{rangeExpensesTotal.toFixed(2)}</span>
               </div>
               <div className="snapshot-box">
                 <span className="snapshot-label">Salaries</span>
-                <span className="snapshot-value">${rangeSalaryTotal.toFixed(2)}</span>
+                <span className="snapshot-value">₱{rangeSalaryTotal.toFixed(2)}</span>
               </div>
               <div className={`snapshot-box ${netProfit >= 0 ? 'snapshot-box-good' : 'snapshot-box-alert'}`}>
                 <span className="snapshot-label">Net Profit</span>
-                <span className="snapshot-value">${netProfit.toFixed(2)}</span>
+                <span className="snapshot-value">₱{netProfit.toFixed(2)}</span>
               </div>
             </div>
             <div className="payment-breakdown">
-              <span className="payment-chip payment-chip-cash">Cash: ${rangeCashTotal.toFixed(2)}</span>
-              <span className="payment-chip payment-chip-gcash">GCash: ${rangeGcashTotal.toFixed(2)}</span>
+              <span className="payment-chip payment-chip-cash">Cash: ₱{rangeCashTotal.toFixed(2)}</span>
+              <span className="payment-chip payment-chip-gcash">GCash: ₱{rangeGcashTotal.toFixed(2)}</span>
             </div>
           </section>
         )}
@@ -446,7 +446,7 @@ function App() {
                   <span className="leaderboard-rank">{medals[i] || `#${i + 1}`}</span>
                   <span className="leaderboard-name">{emp.name}</span>
                   <span className="leaderboard-items">{emp.items} items sold</span>
-                  <span className="leaderboard-total">${emp.total.toFixed(2)}</span>
+                  <span className="leaderboard-total">₱{emp.total.toFixed(2)}</span>
                 </div>
               ))}
               {leaderboard.length === 0 && <p>No sales in this date range yet.</p>}
@@ -466,7 +466,7 @@ function App() {
                 onClick={() => addToCart(m)}
               >
                 <span className="pos-item-name">{m.name}</span>
-                <span className="pos-item-price">${m.price}</span>
+                <span className="pos-item-price">₱{m.price}</span>
                 {m.stock_qty !== null && (
                   <span className={m.stock_qty <= 5 ? 'pos-item-stock-low' : 'pos-item-stock'}>
                     {m.stock_qty <= 0 ? 'Out of stock' : `${m.stock_qty} left`}
@@ -488,7 +488,7 @@ function App() {
                     <span>{c.qty}</span>
                     <button className="qty-btn" onClick={() => changeCartQty(c.id, 1)}>+</button>
                   </div>
-                  <span className="cart-row-total">${(c.price * c.qty).toFixed(2)}</span>
+                  <span className="cart-row-total">₱{(c.price * c.qty).toFixed(2)}</span>
                   <button className="btn btn-danger-outline" onClick={() => removeFromCart(c.id)}>✕</button>
                 </div>
               ))}
@@ -504,7 +504,7 @@ function App() {
               </div>
               <div className="cart-summary">
                 <span>Total</span>
-                <span className="cart-grand-total">${cartTotal.toFixed(2)}</span>
+                <span className="cart-grand-total">₱{cartTotal.toFixed(2)}</span>
               </div>
               <button className="btn btn-primary btn-block" onClick={checkout} disabled={checkingOut}>
                 {checkingOut ? 'Processing...' : 'Complete Sale'}
@@ -532,7 +532,7 @@ function App() {
             <div className="list">
               {expenses.map(ex => (
                 <div className="list-row" key={ex.id}>
-                  <span>{new Date(ex.created_at).toLocaleDateString()} — <b>{ex.category}</b>: ${Number(ex.amount).toFixed(2)} {ex.note ? `(${ex.note})` : ''} · logged by {ex.employees?.name}</span>
+                  <span>{new Date(ex.created_at).toLocaleDateString()} — <b>{ex.category}</b>: ₱{Number(ex.amount).toFixed(2)} {ex.note ? `(${ex.note})` : ''} · logged by {ex.employees?.name}</span>
                   <button className="btn btn-danger-outline" onClick={() => deleteExpense(ex.id)}>Delete</button>
                 </div>
               ))}
@@ -574,7 +574,7 @@ function App() {
               {menuItems.map(m => (
                 <div className="menu-row" key={m.id}>
                   <div className="menu-row-top">
-                    <span><b>{m.name}</b> — ${m.price} {m.category ? `(${m.category})` : ''}</span>
+                    <span><b>{m.name}</b> — ₱{m.price} {m.category ? `(${m.category})` : ''}</span>
                     <span className={m.stock_qty <= 5 ? 'stock-low' : 'stock-ok'}>
                       {m.stock_qty} in stock{m.stock_qty <= 5 ? ' — LOW' : ''}
                     </span>
@@ -605,7 +605,7 @@ function App() {
               {employees.map(emp => (
                 <div className="rate-row" key={emp.id}>
                   <span className="rate-name">{emp.name}</span>
-                  <span className="rate-current">Current: ${Number(emp.daily_rate || 0).toFixed(2)}/day</span>
+                  <span className="rate-current">Current: ₱{Number(emp.daily_rate || 0).toFixed(2)}/day</span>
                   <input className="input input-sm" type="number" placeholder="New rate"
                     value={rateInputs[emp.id] || ''}
                     onChange={e => setRateInputs(r => ({ ...r, [emp.id]: e.target.value }))} />
@@ -630,7 +630,7 @@ function App() {
           <div className="list">
             {(isOwner ? sales : mySales).map(s => (
               <div className="list-row" key={s.id}>
-                <span>{new Date(s.created_at).toLocaleString()} — {s.quantity}x {s.item_name} (${s.price} each) = ${s.total} · {s.payment_method || 'Cash'} · sold by {s.employees?.name}</span>
+                <span>{new Date(s.created_at).toLocaleString()} — {s.quantity}x {s.item_name} (₱{s.price} each) = ₱{s.total} · {s.payment_method || 'Cash'} · sold by {s.employees?.name}</span>
                 {isOwner && <button className="btn btn-danger-outline" onClick={() => deleteSale(s.id)}>Delete</button>}
               </div>
             ))}
