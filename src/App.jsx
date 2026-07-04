@@ -51,6 +51,10 @@ function App() {
   const [checkingOut, setCheckingOut] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('Cash')
 
+  const [cashReconciliations, setCashReconciliations] = useState([])
+  const [countedCash, setCountedCash] = useState('')
+  const [reconcileNote, setReconcileNote] = useState('')
+
   const isOwner = session?.role === 'Owner'
 
   async function loadAll() {
@@ -78,6 +82,11 @@ function App() {
       .select('*, employees(name)')
       .order('created_at', { ascending: false })
     setExpenses(ex || [])
+    const { data: cr } = await supabase
+      .from('cash_reconciliations')
+      .select('*, employees(name)')
+      .order('created_at', { ascending: false })
+    setCashReconciliations(cr || [])
   }
 
   useEffect(() => {
@@ -218,6 +227,22 @@ function App() {
     await supabase.from('expenses').delete().eq('id', id)
     loadAll()
   }
+  async function closeDay(expectedCash) {
+    if (countedCash === '' || isNaN(Number(countedCash))) { alert('Enter the counted cash amount'); return }
+    const variance = Number(countedCash) - expectedCash
+    const { error } = await supabase.from('cash_reconciliations').insert([{
+      reconciliation_date: new Date().toISOString().slice(0, 10),
+      expected_cash: expectedCash,
+      counted_cash: Number(countedCash),
+      variance,
+      note: reconcileNote,
+      employee_id: session.id
+    }])
+    if (error) { alert('Error: ' + error.message); return }
+    setCountedCash(''); setReconcileNote('')
+    loadAll()
+    alert(variance === 0 ? 'Perfect count! Cash matches exactly.' : variance > 0 ? `Recorded — ₱${variance.toFixed(2)} over.` : `Recorded — ₱${Math.abs(variance).toFixed(2)} short.`)
+  }
   async function updateRate(employeeId) {
     const rate = Number(rateInputs[employeeId])
     if (rate < 0 || rateInputs[employeeId] === undefined || rateInputs[employeeId] === '') {
@@ -306,6 +331,10 @@ function App() {
   const bestSeller = bestSellerEntry ? `${bestSellerEntry[0]} (${bestSellerEntry[1]} sold)` : '—'
 
   const lowStockItems = menuItems.filter(m => m.stock_qty !== null && m.stock_qty <= 5)
+
+  const todayCashSales = todaySales.filter(s => (s.payment_method || 'Cash') === 'Cash').reduce((sum, s) => sum + Number(s.total), 0)
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const todayReconciliation = cashReconciliations.find(cr => cr.reconciliation_date === todayStr)
 
   const mySales = sales.filter(s => s.employee_id === session.id)
   const myAttendance = attendance.filter(a => a.employee_id === session.id)
@@ -637,6 +666,64 @@ function App() {
             ))}
           </div>
         </section>
+
+        {isOwner && (
+          <section className="card">
+            <h2>End-of-Day Cash Count</h2>
+            {todayReconciliation ? (
+              <div className="reconcile-done">
+                <p>Today's count is already recorded:</p>
+                <div className="snapshot-grid">
+                  <div className="snapshot-box">
+                    <span className="snapshot-label">Expected Cash</span>
+                    <span className="snapshot-value">₱{Number(todayReconciliation.expected_cash).toFixed(2)}</span>
+                  </div>
+                  <div className="snapshot-box">
+                    <span className="snapshot-label">Counted Cash</span>
+                    <span className="snapshot-value">₱{Number(todayReconciliation.counted_cash).toFixed(2)}</span>
+                  </div>
+                  <div className={`snapshot-box ${Number(todayReconciliation.variance) === 0 ? 'snapshot-box-good' : 'snapshot-box-alert'}`}>
+                    <span className="snapshot-label">{Number(todayReconciliation.variance) >= 0 ? 'Over' : 'Short'}</span>
+                    <span className="snapshot-value">₱{Math.abs(Number(todayReconciliation.variance)).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="snapshot-grid" style={{ marginBottom: '16px' }}>
+                  <div className="snapshot-box">
+                    <span className="snapshot-label">Expected Cash (Today)</span>
+                    <span className="snapshot-value">₱{todayCashSales.toFixed(2)}</span>
+                  </div>
+                </div>
+                <p className="leaderboard-range">Count your cash drawer and enter the total below.</p>
+                <div className="form-row">
+                  <input className="input" type="number" step="0.01" placeholder="Counted cash amount"
+                    value={countedCash} onChange={e => setCountedCash(e.target.value)} />
+                  <input className="input" placeholder="Note (optional)"
+                    value={reconcileNote} onChange={e => setReconcileNote(e.target.value)} />
+                  <button className="btn btn-primary" onClick={() => closeDay(todayCashSales)}>Close Day</button>
+                </div>
+              </>
+            )}
+
+            <h3 style={{ marginTop: '24px' }}>Past Reconciliations</h3>
+            <div className="list">
+              {cashReconciliations.map(cr => (
+                <div className="list-row" key={cr.id}>
+                  <span>
+                    {cr.reconciliation_date} — Expected: ₱{Number(cr.expected_cash).toFixed(2)} · Counted: ₱{Number(cr.counted_cash).toFixed(2)} ·{' '}
+                    <span className={Number(cr.variance) === 0 ? 'stock-ok' : 'stock-low'}>
+                      {Number(cr.variance) === 0 ? 'Exact match' : Number(cr.variance) > 0 ? `₱${Number(cr.variance).toFixed(2)} over` : `₱${Math.abs(Number(cr.variance)).toFixed(2)} short`}
+                    </span>
+                    {cr.note ? ` · ${cr.note}` : ''} · closed by {cr.employees?.name}
+                  </span>
+                </div>
+              ))}
+              {cashReconciliations.length === 0 && <p>No cash counts recorded yet.</p>}
+            </div>
+          </section>
+        )}
 
       </main>
     </div>
