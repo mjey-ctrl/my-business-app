@@ -465,3 +465,51 @@ h2 {
 .restock-row { display: flex; gap: 8px; margin-top: 10px; }
 
 .clock-actions { display: flex; gap: 10px; margin-bottom: 16px; }
+/* ---------- PAGE TOGGLE ---------- */
+.page-toggle-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.page-toggle-btn {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.page-toggle-active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+/* ---------- PAGE TOGGLE ---------- */
+.page-toggle-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.page-toggle-btn {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.page-toggle-active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}

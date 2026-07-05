@@ -55,6 +55,8 @@ function App() {
   const [countedCash, setCountedCash] = useState('')
   const [reconcileNote, setReconcileNote] = useState('')
 
+  const [ownerPage, setOwnerPage] = useState(1)
+
   const isOwner = session?.role === 'Owner'
 
   async function loadAll() {
@@ -405,6 +407,9 @@ function App() {
     return `${h - 12}pm`
   }
 
+  const showPage1 = !isOwner || ownerPage === 1
+  const showPage2 = !isOwner || ownerPage === 2
+
   /* ---------------- APP SHELL ---------------- */
   return (
     <div className="app">
@@ -419,7 +424,15 @@ function App() {
 
       <main className="content">
 
+        {isOwner && (
+          <div className="page-toggle-row">
+            <button className={`page-toggle-btn ${ownerPage === 1 ? 'page-toggle-active' : ''}`} onClick={() => setOwnerPage(1)}>Overview</button>
+            <button className={`page-toggle-btn ${ownerPage === 2 ? 'page-toggle-active' : ''}`} onClick={() => setOwnerPage(2)}>Sales & Inventory</button>
+          </div>
+        )}
+
         {/* -------- TODAY AT A GLANCE -------- */}
+        {showPage1 && (
         <section className="card">
           <h2>Today at a Glance</h2>
           <div className="snapshot-grid">
@@ -448,9 +461,10 @@ function App() {
             </div>
           )}
         </section>
+        )}
 
         {/* -------- PROFIT SUMMARY -------- */}
-        {isOwner && (
+        {isOwner && ownerPage === 1 && (
           <section className="card">
             <h2>Profit Summary</h2>
             <div className="date-range-row">
@@ -490,7 +504,7 @@ function App() {
         )}
 
         {/* -------- EMPLOYEE LEADERBOARD -------- */}
-        {isOwner && (
+        {isOwner && ownerPage === 2 && (
           <section className="card">
             <h2>Employee Leaderboard</h2>
             <p className="leaderboard-range">Ranked by sales, {rangeStart} to {rangeEnd}</p>
@@ -509,7 +523,7 @@ function App() {
         )}
 
         {/* -------- SALES REPORTS -------- */}
-        {isOwner && (
+        {isOwner && ownerPage === 2 && (
           <section className="card">
             <h2>Sales Reports</h2>
             <p className="leaderboard-range">{rangeStart} to {rangeEnd} · Busiest day: {dayNames[busiestDayIndex]} · Busiest hour: {formatHour(busiestHour)}</p>
@@ -544,6 +558,7 @@ function App() {
         )}
 
         {/* -------- POS -------- */}
+        {showPage2 && (
         <section className="card">
           <h2>Point of Sale</h2>
           <div className="pos-grid">
@@ -601,8 +616,9 @@ function App() {
             </div>
           )}
         </section>
+        )}
 
-        {isOwner && (
+        {isOwner && ownerPage === 2 && (
           <section className="card">
             <h2>Expenses</h2>
             <form onSubmit={addExpense} className="form-row">
@@ -630,7 +646,7 @@ function App() {
           </section>
         )}
 
-        {isOwner && (
+        {isOwner && ownerPage === 1 && (
           <section className="card">
             <h2>Customers</h2>
             <form onSubmit={addCustomer} className="form-row">
@@ -649,7 +665,7 @@ function App() {
           </section>
         )}
 
-        {isOwner && (
+        {isOwner && ownerPage === 2 && (
           <section className="card">
             <h2>Menu & Inventory</h2>
             <form onSubmit={addMenuItem} className="form-grid">
@@ -681,6 +697,7 @@ function App() {
           </section>
         )}
 
+        {showPage1 && (
         <section className="card">
           <h2>Team Attendance</h2>
           <div className="clock-actions">
@@ -714,7 +731,9 @@ function App() {
             ))}
           </div>
         </section>
+        )}
 
+        {showPage2 && (
         <section className="card">
           <h2>Sales History</h2>
           <div className="list">
@@ -726,8 +745,9 @@ function App() {
             ))}
           </div>
         </section>
+        )}
 
-        {isOwner && (
+        {isOwner && ownerPage === 1 && (
           <section className="card">
             <h2>End-of-Day Cash Count</h2>
             {todayReconciliation ? (
