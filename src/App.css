@@ -180,6 +180,7 @@ h2 {
 .form-grid { grid-template-columns: repeat(2, 1fr); }
 @media (min-width: 640px) { .form-grid { grid-template-columns: repeat(5, 1fr); } }
 
+/* ---------- LOGIN WRAPPER ---------- */
 .login-wrap {
   min-height: 100vh;
   display: flex;
@@ -187,17 +188,110 @@ h2 {
   justify-content: center;
   background: var(--ink);
   padding: 20px;
+  position: relative;
+  overflow: hidden;
 }
+
+/* ---------- LAMP-STYLE LOGIN ---------- */
+.login-scene {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 360px;
+}
+
+.lamp-glow {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(232,98,44,0.35) 0%, rgba(232,98,44,0.08) 45%, transparent 70%);
+  filter: blur(10px);
+  pointer-events: none;
+  animation: lampPulse 3.5s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes lampPulse {
+  0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.06); }
+}
+
+.lamp-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.lamp-toggle:hover {
+  transform: scale(1.05);
+}
+
+.lamp-toggle-open {
+  transform: rotate(8deg);
+}
+
+.lamp-toggle-open:hover {
+  transform: rotate(8deg) scale(1.05);
+}
+
+.login-logo-img {
+  height: 72px;
+  width: 72px;
+  border-radius: 14px;
+  object-fit: cover;
+  filter: drop-shadow(0 0 20px rgba(232, 98, 44, 0.55));
+}
+
+.login-brand-title {
+  color: #FFF8ED;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 24px;
+  margin: 14px 0 2px 0;
+  letter-spacing: 0.02em;
+}
+
+.login-hint {
+  color: #C9B79F;
+  font-size: 13px;
+  margin: 0 0 4px 0;
+  font-family: 'Inter', sans-serif;
+}
+
 .login-card {
   background: var(--paper);
   border-radius: 16px;
-  padding: 36px 28px;
+  padding: 32px 28px;
   width: 100%;
-  max-width: 360px;
   text-align: center;
   box-shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
 }
-.login-logo-img { height: 56px; width: 56px; border-radius: 12px; margin-bottom: 12px; object-fit: cover; }
+
+.login-card-closed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.login-card-open {
+  max-height: 600px;
+  opacity: 1;
+  margin-top: 20px;
+  transition: max-height 0.5s ease, opacity 0.4s ease 0.1s, margin-top 0.4s ease;
+}
+
 .login-sub { color: var(--ink-soft); margin: -8px 0 20px; font-size: 14px; }
 
 .snapshot-grid {
@@ -459,10 +553,18 @@ h2 {
   padding: 12px 14px;
   margin-bottom: 8px;
 }
-.menu-row-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; }
+.menu-row-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.menu-row-title { font-size: 14px; }
+.menu-row-stock { margin-bottom: 8px; }
 .stock-ok { color: var(--good); font-weight: 700; font-size: 12px; }
 .stock-low { color: var(--bad); font-weight: 700; font-size: 12px; }
-.restock-row { display: flex; gap: 8px; margin-top: 10px; }
+.restock-row { display: flex; gap: 8px; }
 
 .clock-actions { display: flex; gap: 10px; margin-bottom: 16px; }
 /* ---------- PAGE TOGGLE ---------- */
@@ -488,28 +590,14 @@ h2 {
   background: var(--ink);
   border-color: var(--ink);
   color: #fff;
+}.form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 18px;
 }
-/* ---------- PAGE TOGGLE ---------- */
-.page-toggle-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.page-toggle-btn {
-  flex: 1;
-  padding: 12px;
-  border: 2px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink-soft);
-  font-weight: 700;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-}
-.page-toggle-active {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: #fff;
+
+.btn-primary {
+  white-space: nowrap;
 }

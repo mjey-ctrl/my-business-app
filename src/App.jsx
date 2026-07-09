@@ -101,6 +101,7 @@ function App() {
     const [selectedId, setSelectedId] = useState('')
     const [pin, setPin] = useState('')
     const [error, setError] = useState('')
+    const [formOpen, setFormOpen] = useState(false)
 
     useEffect(() => {
       supabase.from('employees').select('id, name').then(({ data }) => setPinEmployees(data || []))
@@ -128,31 +129,45 @@ function App() {
 
     return (
       <div className="login-wrap">
-        <form className="login-card" onSubmit={handleLogin}>
-          <img src="/logo.png" alt="Quick QC" className="login-logo-img" />
-          <h1>Quick QC</h1>
-          <p className="login-sub">Sign in to continue</p>
+        <div className="lamp-glow" />
+        <div className="login-scene">
+          <button
+            type="button"
+            className={`lamp-toggle ${formOpen ? 'lamp-toggle-open' : ''}`}
+            onClick={() => setFormOpen(o => !o)}
+          >
+            <img src="/logo.png" alt="Quick QC" className="login-logo-img" />
+          </button>
+          <h1 className="login-brand-title">Quick QC</h1>
+          {!formOpen && <p className="login-hint">Tap the logo to sign in</p>}
 
-          <label className="field-label">Your name</label>
-          <select className="input" value={selectedId} onChange={e => setSelectedId(e.target.value)}>
-            <option value="">Select your name</option>
-            {pinEmployees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-          </select>
+          <form
+            className={`login-card ${formOpen ? 'login-card-open' : 'login-card-closed'}`}
+            onSubmit={handleLogin}
+          >
+            <p className="login-sub">Sign in to continue</p>
 
-          <label className="field-label">PIN code</label>
-          <input
-            className="input"
-            type="password"
-            inputMode="numeric"
-            placeholder="••••"
-            value={pin}
-            onChange={e => setPin(e.target.value)}
-          />
+            <label className="field-label">Your name</label>
+            <select className="input" value={selectedId} onChange={e => setSelectedId(e.target.value)}>
+              <option value="">Select your name</option>
+              {pinEmployees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+            </select>
 
-          {error && <div className="error-text">{error}</div>}
+            <label className="field-label">PIN code</label>
+            <input
+              className="input"
+              type="password"
+              inputMode="numeric"
+              placeholder="••••"
+              value={pin}
+              onChange={e => setPin(e.target.value)}
+            />
 
-          <button className="btn btn-primary btn-block" type="submit">Sign in</button>
-        </form>
+            {error && <div className="error-text">{error}</div>}
+
+            <button className="btn btn-primary btn-block" type="submit">Sign in</button>
+          </form>
+        </div>
       </div>
     )
   }
@@ -672,18 +687,20 @@ function App() {
               <input className="input" placeholder="Item name" value={mName} onChange={e => setMName(e.target.value)} />
               <input className="input" type="number" step="0.01" placeholder="Price" value={mPrice} onChange={e => setMPrice(e.target.value)} />
               <input className="input" type="number" placeholder="Starting stock" value={mStock} onChange={e => setMStock(e.target.value)} />
-              <input className="input" placeholder="Category" value={mCategory} onChange={e => setMCategory(e.target.value)} />
+            
               <button className="btn btn-primary" type="submit">Add item</button>
             </form>
             <div className="list">
               {menuItems.map(m => (
                 <div className="menu-row" key={m.id}>
                   <div className="menu-row-top">
-                    <span><b>{m.name}</b> — ₱{m.price} {m.category ? `(${m.category})` : ''}</span>
+                    <span className="menu-row-title"><b>{m.name}</b> — ₱{m.price} {m.category ? `(${m.category})` : ''}</span>
+                    <button className="btn btn-danger-outline" onClick={() => deleteMenuItem(m.id)}>Delete</button>
+                  </div>
+                  <div className="menu-row-stock">
                     <span className={m.stock_qty <= 5 ? 'stock-low' : 'stock-ok'}>
                       {m.stock_qty} in stock{m.stock_qty <= 5 ? ' — LOW' : ''}
                     </span>
-                    <button className="btn btn-danger-outline" onClick={() => deleteMenuItem(m.id)}>Delete</button>
                   </div>
                   <div className="restock-row">
                     <input className="input input-sm" type="number" placeholder="Add stock"
