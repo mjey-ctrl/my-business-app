@@ -77,9 +77,38 @@ async function getClaudeReply(userText) {
         "EVENTS WE CATER: Birthday parties, christening/baptism, weddings, debut (18th/21st birthday), corporate and " +
         "private events.\n\n" +
 
-        "PACKAGES & PRICING: Never give a final price without complete event details first. Packages vary by number of " +
-        "guests, menu selection, and service style, and are customized to the client's needs and budget. Once you have " +
-        "enough details, tell the customer the team will prepare a customized quotation — do not invent numbers.\n\n" +
+        "PACKAGE PRICING (per head, buffet-style; customer picks their package based on how many food categories they " +
+        "want): Php 360 = choice of Pork, Chicken, Pasta, Vegetable. Php 380 = Pork, Chicken, Pasta, Fish. " +
+        "Php 410 = Beef, Chicken, Pasta, Vegetable. Php 430 = Beef, Chicken, Fish, Pasta. " +
+        "Php 450 = Beef, Pork, Fish, Pasta. Php 470 = Pork, Chicken, Fish, Pasta, Vegetable. " +
+        "Php 490 = Beef, Chicken, Fish, Pasta, Vegetable. Php 510 = Beef, Pork, Chicken, Fish, Pasta. " +
+        "Php 530 = Beef, Pork, Chicken, Fish, Pasta, Vegetable. All packages include Dessert, Rice, Juices, and Water. " +
+        "Every package also comes with FREE pastries or garden salad.\n\n" +
+
+        "AMENITIES INCLUDED: Waiters, basic dining set up, buffet set up, flower or balloon per table, simple backdrop.\n\n" +
+
+        "MENU CHOICES BY CATEGORY (customer picks specific dishes per category included in their package):\n" +
+        "- Beef: Beef Salpicao, Beef with Mushroom, Beef Teriyaki, Beef Caldereta, Roasted Beef with Mash Potato, " +
+        "Beef Mechado, Beef Broccoli, Beef Stroganoff\n" +
+        "- Seafood: Fish Fillet Dip, Fish Oyster Sauce, Seafood Kare-Kare (+Php50/head), Fish Fillet Ginger, " +
+        "Sweet and Sour Fish, Steamed Fish Aiola, Seafood Paella (+Php50/head)\n" +
+        "- Vegetable: Mongolian Vegetable, Ubod in Peanut Sauce, Buttered Vegetables, Vegetable Kare-Kare, " +
+        "Corn & Carrots, Chinese Chopsuey, Oystered Vegetable, Buttered Baby Potatoes with Chorizo\n" +
+        "- Pork: Hawaiian Porkloin, Porkloin in Red Sauce, Asian Pork Spareribs, Roast Pork with Mushroom Sauce, " +
+        "Pork Teriyaki, Pork Tonkatsu, Grilled Pork BBQ, Pork Salpicao\n" +
+        "- Chicken: Buttered Garlic Chicken, Chicken Cordon Bleu, Chicken Pastel, South China Chicken, " +
+        "Chicken Teriyaki, Chicken Tonkatsu, Honey Glazed Chicken, Creamy Garlic Chicken Breast\n" +
+        "- Pasta & Noodles: Baked Ziti, Creamy Pesto Pasta, Sotanghon Guisado, Pancit Bihon Guisado, " +
+        "Penne and Cheese, Linguine Carbonara, Canton Guisado, Truffle Pasta\n" +
+        "- Dessert: Peach Mango Cream, Buko Pandan, Mango Tapioca, Coffee Jelly, Fresh Fruits, Almond Jello with Lychee\n" +
+        "- Beverages: Iced Tea / Red Iced Tea, Blue Lemonade, Cucumber Juice, Four Seasons\n\n" +
+
+        "When a customer asks about pricing, you CAN quote the package prices above directly (these are fixed, published " +
+        "prices), but still ask for guest count, event date, and location so the team can prepare a full customized " +
+        "quotation. Do not invent any dish, price, or add-on not listed above — if asked about something not listed, say " +
+        "a team member will confirm.\n\n" +
+
+        "CONTACT: For urgent concerns or to finalize a booking, the customer can also call/text 09154985170.\n\n" +
 
         "LOCATION & VENUE: Main location is Nangka, Marikina, with an additional venue option in Quezon City. If the " +
         "customer has no venue yet, offer to recommend or coordinate with partner event venues near their preferred area. " +
